@@ -368,6 +368,12 @@
     .PARAMETER ExchangeProductKey
     FP / Exchange Product Key
 
+    .PARAMETER CertFile
+    FP / Full Path and Name to Cert File for Exchange Import
+
+    .PARAMETER CertPassword
+    FP / ClearText Password for CertFile
+
     .EXAMPLE
     $Cred=Get-Credential
     .\Install-Exchange15.ps1 -Organization Fabrikam -InstallMailbox -MDBDBPath C:\MailboxData\MDB1\DB -MDBLogPath C:\MailboxData\MDB1\Log -MDBName MDB1 -InstallPath C:\Install -AutoPilot -Credentials $Cred -SourcePath '\\server\share\Exchange 2013\mu_exchange_server_2013_x64_dvd_1112105' -SCP https://autodiscover.fabrikam.com/autodiscover/autodiscover.xml -Verbose
@@ -538,7 +544,11 @@ param(
     [Parameter(Mandatory=$True)]
     [string]$OutlookHostname,
     [Parameter(Mandatory=$True)]
-    [string]$ExchangeProductKey
+    [string]$ExchangeProductKey,
+    [Parameter(Mandatory=$True)]
+    [string]$CertFile
+    [Parameter(Mandatory=$True)]
+    [string]$CertPassword
 )
 
 process {
@@ -2909,7 +2919,7 @@ process {
 
             Load-ExchangeModule
             Write-Host "New Log File under C:\Install\post_install.log"
-            Start-Transcript -Path "C:\Install\post_install.log"
+            Start-Transcript -Path "C:\Install\post_install.log" -Force
             #Set Exchange Hostname thx franky
             Write-Host "Setting OutlookHostname to $OutlookHostname ..."
 
@@ -2976,7 +2986,7 @@ process {
             Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -Verbose
 
             Write-Host "Now we will Import the Exchange Certificates. Please be patient and look for errors..."
-            Import-ExchangeCertificate
+            Import-ExchangeCertificate -Server $env:computername -FileName $CertFile -Password (ConvertTo-SecureString -String $CertPassword -AsPlainText -Force)
 
             If( $State["InstallMailbox"] ) {
                 # Insert Mailbox Server specifics here
