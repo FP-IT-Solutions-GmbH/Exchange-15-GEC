@@ -359,16 +359,13 @@
     .PARAMETER Phase
     Internal Use Only :)
 
-    .PARAMETER Hostname
-    FP / Used for setting the hostname in post config
-
     .PARAMETER OutlookHostname
     FP / z.B. outlook.fpitsolutions.de
 
     .PARAMETER AutodiscoverHostname
     FP / z.B. autodiscover.fpitsolutions.de
 
-    .PARAMETER ProductKey
+    .PARAMETER ExchangeProductKey
     FP / Exchange Product Key
 
     .EXAMPLE
@@ -536,8 +533,6 @@ param(
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='Recover')]
         [ValidateRange(0,6)]
         [int]$Phase,
-    [Parameter(Mandatory=$true)]
-    [string]$Hostname,
     [Parameter(Mandatory=$True)]
     [string]$AutodiscoverHostname,
     [Parameter(Mandatory=$True)]
