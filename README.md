@@ -24,16 +24,16 @@ Exchange Product Key
 
 
 New Functions:
-Includes Hafnium patches
-Patches whole system with PSWindowsUpdate 
+-Includes Hafnium patches
+-Patches whole system with PSWindowsUpdate 
 
 
 ToDo:
 
 
-Import Certificate
-Copy DB to original path
-DB Mount
+-Import Certificate
+-Copy DB to original path
+-DB Mount
 
 
 
