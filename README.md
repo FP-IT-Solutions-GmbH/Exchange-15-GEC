@@ -23,6 +23,15 @@ Used for Exchange URL (like autodiscover.example.org)
 
 Exchange Product Key
 
+-CertFile
+
+Full Path and Name to certfile which needs to be imported to exchange (like C:\certs\certfile.pfx)
+
+-CertPassword
+
+Cleartext Password for Certfile. Internally converted to securestring
+
+
 
 New Functions:
 
