@@ -43,8 +43,6 @@ New Functions:
 
 ToDo:
 
--Import Certificate
-
 -Copy DB to original path
 
 -DB Mount
