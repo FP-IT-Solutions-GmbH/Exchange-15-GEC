@@ -2908,7 +2908,8 @@ process {
             
 
             Load-ExchangeModule
-
+            Write-Host "New Log File under C:\Install\post_install.log"
+            Start-Transcript -Path "C:\Install\post_install.log"
             #Set Exchange Hostname thx franky
             Write-Host "Setting OutlookHostname to $OutlookHostname ..."
 
@@ -2973,6 +2974,9 @@ process {
 
             Write-Host "Finally will update everything. This will take some time... Thank you for waiting :P"
             Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -Verbose
+
+            Write-Host "Now we will Import the Exchange Certificates. Please be patient and look for errors..."
+            Import-ExchangeCertificate
 
             If( $State["InstallMailbox"] ) {
                 # Insert Mailbox Server specifics here
