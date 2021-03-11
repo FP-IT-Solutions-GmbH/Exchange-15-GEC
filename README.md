@@ -6,10 +6,6 @@ https://github.com/michelderooij/Install-Exchange15
 
 New Parameters:
 
--Hostname STRING 
-
-Used for setting the hostname in post config
-
 -OutlookHostname
 
 Used for Exchange URL (like outlook.example.org)
