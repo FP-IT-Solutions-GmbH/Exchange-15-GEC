@@ -2632,6 +2632,8 @@ process {
         1 {
             Write-Host "Hello and welcome. Now setting variables..."
             New-Item C:\Install\var.ps1
+            Write-Host "Disabling Defender..."
+            Set-MpPreference -DisableRealtimeMonitoring $true
             $AAutodiscoverHostname = '$SAutodiscoverHostname' + " = `"$AutodiscoverHostname`""
             Add-Content -Path C:\Install\var.ps1 -Value $AAutodiscoverHostname
             $AOutlookHostname = '$SOutlookHostname' + " = `"$OutlookHostname`""
@@ -2749,7 +2751,8 @@ process {
         2 {
             Write-MyOutput "Installing BITS module"
             Import-Module BITSTransfer
-
+            Write-Host "Disabling Defender..."
+            Set-MpPreference -DisableRealtimeMonitoring $true
             If( $State["Install461"] -or $State["Install462"] -or $State['Install471'] -or $State['Install472'] -or $State["Install48"]) {
                 # Check .NET FrameWork 4.8 needs to be installed
                 If( $State["Install48"]) {
@@ -2890,7 +2893,9 @@ process {
             }
         }
 
-        3 {
+        3 { 
+            Write-Host "Disabling Defender..."
+            Set-MpPreference -DisableRealtimeMonitoring $true
             if( !($State['InstallEdge'])){
                 Write-MyOutput "Installing Exchange prerequisites (continued)"
                 If( (is-MinimalBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) -and (is-ServerCore) ) {
@@ -2911,6 +2916,8 @@ process {
         }
 
         4 {
+            Write-Host "Disabling Defender..."
+            Set-MpPreference -DisableRealtimeMonitoring $true
             Write-MyOutput "Installing Exchange"
             Install-Exchange15_
             switch( $State["SCP"]) {
@@ -2937,6 +2944,8 @@ process {
         }
 
         5 {
+            Write-Host "Disabling Defender..."
+            Set-MpPreference -DisableRealtimeMonitoring $true
             Write-MyOutput "Post-configuring"
             If( $MajorOSVersion -eq $WS2016_MAJOR) {
                 Configure-WindowsDefenderExclusions
