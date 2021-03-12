@@ -361,32 +361,7 @@
     .PARAMETER Phase
     Internal Use Only :)
 
-    .PARAMETER OutlookHostname
-    FP / z.B. outlook.fpitsolutions.de
 
-    .PARAMETER AutodiscoverHostname
-    FP / z.B. autodiscover.fpitsolutions.de
-
-    .PARAMETER ExchangeProductKey
-    FP / Exchange Product Key
-
-    .PARAMETER CertFile
-    FP / Full Path and Name to Cert File for Exchange Import
-
-    .PARAMETER CertFile2
-    FP / Full Path and Name to CertFile2 for Exchange Import
-
-    .PARAMETER CertPassword
-    FP / ClearText Password for CertFile
-
-    .PARAMETER CertPassword2
-    FP / ClearText Password for CertFile2
-
-    .PARAMETER Logdir
-    FP / Dir of Default Exchange Logs
-
-    .PARAMETER CertExServices
-    FP / Dir of Default Exchange Logs
 
     .EXAMPLE
     $Cred=Get-Credential
@@ -3021,7 +2996,7 @@ process {
             Write-MyVerbose "Should have set hostname to $SOutlookHostname and $SAutodiscoverHostname thx franky"
 
             Write-Host "Now setting Exchange Product Key to $SExchangeProductKey ..."
-            Set-ExchangeServer $env:computername -ProductKey $ESxchangeProductKey
+            Set-ExchangeServer $env:computername -ProductKey $SExchangeProductKey
             Write-MyVerbose "Should have set product key to $SExchangeProductKey"
             Write-Host "Now restarting MSExchangeIS Service so product key is enabled"
             Restart-Service MSExchangeIS
@@ -3045,32 +3020,33 @@ process {
             Import-ExchangeCertificate -Server $env:computername -FileName $SCertFile2 -Password (ConvertTo-SecureString -String $SCertPassword2 -AsPlainText -Force)
 
             Import-Module WebAdministration
+            $SLogdir = "D:\inetpub\logs\"
             Set-WebConfigurationProperty "/system.applicationHost/sites/siteDefaults" -name logfile.directory -value $SLogdir
             IISReset
 
             Write-Host "GEC Log umlegen Scripte."
 
             $DAG1=$env:computername
-            $Path="E:\"
+            $ExcLogPath="D:\"
             
-            Set-TransportService $DAG1 -ReceiveProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Hub\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Hub\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
-            Set-FrontendTransportService $DAG1 -ReceiveProtocolLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
-            Set-MailboxTransportService $DAG1 -ReceiveProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
+            Set-TransportService $DAG1 -ReceiveProtocolLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\Hub\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\Hub\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
+            Set-FrontendTransportService $DAG1 -ReceiveProtocolLogPath "$ExcLogPath" + "Exchange Server\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
+            Set-MailboxTransportService $DAG1 -ReceiveProtocolLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
             
-            Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-ListReceiveProtocolLog*,SendProtocolLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*
+            #Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-ListReceiveProtocolLog*,SendProtocolLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*
             $DAG1="EX-DAG01"
             
-            Set-TransportService $DAG1 -ConnectivityLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\Hub\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
+            Set-TransportService $DAG1 -ConnectivityLogPath "$ExcLogPath" + "Exchange Server\V15\TransportRoles\Logs\Hub\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
             
-            Set-FrontEndTransportService $DAG1 -ConnectivityLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\FrontEnd\Connectivity" -ConnectivityLogMaxFileSize 10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
+            Set-FrontEndTransportService $DAG1 -ConnectivityLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\FrontEnd\Connectivity" -ConnectivityLogMaxFileSize 10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
             
-            Set-MailboxTransportService $DAG1 -ConnectivityLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\Mailbox\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
+            Set-MailboxTransportService $DAG1 -ConnectivityLogPath "$ExcLogPath" + "Exchange Server\V15\TransportRoles\Logs\Mailbox\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
             
             Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List Name,ConnectivityLog*
             Anhang 1.10: Verschieben der Logverzeichnisse in der Exchange 2016 DAG für die Message Tracking Logs
             $DAG1="EX-DAG01"
             
-            Set-TransportService $DAG1 -MessageTrackingLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\MessageTracking" -MessageTrackingLogMaxFileSize 10MB -MessageTrackingLogMaxDirectorySize 1GB -MessageTrackingLogMaxAge 30.00:00:00
+            Set-TransportService $DAG1 -MessageTrackingLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\MessageTracking" -MessageTrackingLogMaxFileSize 10MB -MessageTrackingLogMaxDirectorySize 1GB -MessageTrackingLogMaxAge 30.00:00:00
             
             Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService | Format-List MessageTrackingLog*
 
