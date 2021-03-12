@@ -3034,7 +3034,7 @@ process {
             Set-MailboxTransportService $DAG1 -ReceiveProtocolLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
             
             #Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-ListReceiveProtocolLog*,SendProtocolLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*
-            $DAG1="EX-DAG01"
+            #$DAG1="EX-DAG01"
             
             Set-TransportService $DAG1 -ConnectivityLogPath "$ExcLogPath" + "Exchange Server\V15\TransportRoles\Logs\Hub\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
             
@@ -3044,15 +3044,15 @@ process {
             
             Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List Name,ConnectivityLog*
             Anhang 1.10: Verschieben der Logverzeichnisse in der Exchange 2016 DAG für die Message Tracking Logs
-            $DAG1="EX-DAG01"
+            #$DAG1="EX-DAG01"
             
             Set-TransportService $DAG1 -MessageTrackingLogPath "$ExcLogPath" + "ExchangeServer\V15\TransportRoles\Logs\MessageTracking" -MessageTrackingLogMaxFileSize 10MB -MessageTrackingLogMaxDirectorySize 1GB -MessageTrackingLogMaxAge 30.00:00:00
             
             Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService | Format-List MessageTrackingLog*
 
             Write-Host "Imap and imap set to automatic start"
-            Set-Service -Name „MSExchangeImap4“ -StartUpType Automatic
-            Set-Service -Name „MSExchangeImap4BE“ -StartUpType Automatic
+            Set-Service -Name "MSExchangeImap4" -StartUpType Automatic
+            Set-Service -Name "MSExchangeImap4BE" -StartUpType Automatic
 
             Write-Host "binding certificate to exchange services"
             $thumb = get-exchangecertificate |where Subject -like $SCertEXServices | select Thumbprint   
