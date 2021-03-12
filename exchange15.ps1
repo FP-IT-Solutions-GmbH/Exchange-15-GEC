@@ -3044,6 +3044,46 @@ process {
             Set-WebConfigurationProperty "/system.applicationHost/sites/siteDefaults" -name logfile.directory -value $SLogdir
             IISReset
 
+            Write-Host "GEC Log umlegen Scripte."
+
+            $DAG1=$env:computername
+            $Path="E:\"
+            
+            Set-TransportService $DAG1 -ReceiveProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Hub\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Hub\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
+            Set-FrontendTransportService $DAG1 -ReceiveProtocolLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
+            Set-MailboxTransportService $DAG1 -ReceiveProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
+            
+
+            
+            Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-ListReceiveProtocolLog*,SendProtocolLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*
+            $DAG1="EX-DAG01"
+            
+            Set-TransportService $DAG1 -ConnectivityLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\Hub\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
+            
+            Set-FrontEndTransportService $DAG1 -ConnectivityLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\FrontEnd\Connectivity" -ConnectivityLogMaxFileSize 10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
+
+            
+            Set-MailboxTransportService $DAG1 -ConnectivityLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\Mailbox\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
+
+            
+            Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List Name,ConnectivityLog*
+            Anhang 1.10: Verschieben der Logverzeichnisse in der Exchange 2016 DAG für die Message Tracking Logs
+            $DAG1="EX-DAG01"
+
+            
+            Set-TransportService $DAG1 -MessageTrackingLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\MessageTracking" -MessageTrackingLogMaxFileSize 10MB -MessageTrackingLogMaxDirectorySize 1GB -MessageTrackingLogMaxAge 30.00:00:00
+
+            
+            Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService | Format-List MessageTrackingLog*
+
+            Write-Host "Imap and imap be to automatic start"
+            Set-Service -Name „MSExchangeImap4“ -StartUpType Automatic
+            Set-Service -Name „MSExchangeImap4BE“ -StartUpType Automatic
+
+            Write-Host "bind certificate to exchange services"
+            $thumb = get-exchangecertifcate |where Subject -like "*autodiscover*" | select Thumbprint  
+            Enable-ExchangeCertificate -Thumbprint  $thumb.thumbprint -Services IIS,SMTP,POP,IMAP -force
+
             If( $State["InstallMailbox"] ) {
                 # Insert Mailbox Server specifics here
             }
