@@ -1,11 +1,12 @@
 <#
     .SYNOPSIS
     Install-Exchange15
-
+    
+    Original Author Exchange15 Script:
     Michel de Rooij
     michel@eightwone.com
     
-    # Tested WS2019 EXC2019
+    Customization to Recover after Hafnium:
     Aaron Schwehm
     aaron.schwehm@fpitsolutions.de
 
