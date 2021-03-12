@@ -537,8 +537,6 @@ param(
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='NoSetup')]
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='AutoPilot')]
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='Recover')]
-        [ValidateRange(0,6)]
-        [int]$Phase,
     [Parameter(Mandatory=$True)]
     [string]$AutodiscoverHostname,
     [Parameter(Mandatory=$True)]
@@ -548,7 +546,9 @@ param(
     [Parameter(Mandatory=$True)]
     [string]$CertFile
     [Parameter(Mandatory=$True)]
-    [string]$CertPassword
+    [string]$CertPassword,
+        [ValidateRange(0,6)]
+        [int]$Phase
 )
 
 process {
@@ -2502,8 +2502,12 @@ process {
         $State["Upgrade"]= $false
         $State["UseWMF3"]= $UseWMF3
         $State["NoNet461"]= $NoNet461
-        $State["NoNet471"]= $NoNet471
+        $State["AutodiscoverHostname"]= $AutodiscoverHostname
         $State["NoNet472"]= $NoNet472
+        $State["OutlookHostname"]= $OutlookHostname
+        $State["ExchangeProductKey"]= $ExchangeProductKey
+        $State["CertFile"]= $CertFile
+        $State["CertPassword"]= $CertPassword
         $State["Install461"]= $False
         $State["Install462"]= $False
         $State["Install471"]= $False
@@ -2609,7 +2613,19 @@ process {
 
       Switch ($State["InstallPhase"]) {
         1 {
-
+            Write-Host "Hello and welcome. Now setting variables..."
+            New-Item C:\Install\var.ps1
+            $AAutodiscoverHostname = '$SAutodiscoverHostname' + " = `"$AutodiscoverHostname`""
+            Add-Content -Path C:\Install\var.ps1 -Value $AAutodiscoverHostname
+            $AOutlookHostname = '$SOutlookHostname' + " = `"$OutlookHostname`""
+            Add-Content -Path C:\Install\var.ps1 -Value $AOutlookHostname
+            $AExchangeProductKey = '$SExchangeProductKey' + " = `"$ExchangeProductKey`""
+            Add-Content -Path C:\Install\var.ps1 -Value $AExchangeProductKey
+            $ACertFile = '$SCertFile' + " = `"$CertFile`""
+            Add-Content -Path C:\Install\var.ps1 -Value $ACertFile
+            $ACertPassword = '$SCertPassword' + " = `"$CertPassword`""
+            Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword
+            Write-Host "Will beginn with the real script now :)"
             If( @($WS2012R2_MAJOR, $WS2016_MAJOR) -contains $MajorOSVersion) {
                 If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU2)) -or
                     ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2013SETUPEXE_CU13))) {
@@ -2915,59 +2931,61 @@ process {
             Start-7318DrainNGenQueue
 
 
-            
+            Write-Host "If you see this variables are loaded correctly. Otherwise will load from ps1 file now... $OutlookHostname"
+            #Better save then sorry. If there is error above this thank me later
+            . C:\Install\var.ps1
 
             Load-ExchangeModule
             Write-Host "New Log File under C:\Install\post_install.log"
             Start-Transcript -Path "C:\Install\post_install.log" -Force
             #Set Exchange Hostname thx franky
-            Write-Host "Setting OutlookHostname to $OutlookHostname ..."
+            Write-Host "Setting OutlookHostname to $SOutlookHostname ..."
 
             #OWA
-            $owa = "https://" + "$OutlookHostname" + "/owa"
+            $owa = "https://" + "$SOutlookHostname" + "/owa"
             write-host "OWA URL:" $owa
             Get-OwaVirtualDirectory -Server $env:computername | Set-OwaVirtualDirectory -internalurl $owa -externalurl $owa -wa 0
             
             #ECP
-            $ecp = "https://" + "$OutlookHostname" + "/ecp"
+            $ecp = "https://" + "$SOutlookHostname" + "/ecp"
             write-host "ECP URL:" $ecp
             Get-EcpVirtualDirectory -server $env:computername| Set-EcpVirtualDirectory -internalurl $ecp -externalurl $ecp
             
             #EWS
-            $ews = "https://" + "$OutlookHostname" + "/EWS/Exchange.asmx"
+            $ews = "https://" + "$SOutlookHostname" + "/EWS/Exchange.asmx"
             write-host "EWS URL:" $ews
             Get-WebServicesVirtualDirectory -server $env:computername | Set-WebServicesVirtualDirectory -internalurl $ews -externalurl $ews -confirm:$false -force
             
             #ActiveSync
-            $eas = "https://" + "$OutlookHostname" + "/Microsoft-Server-ActiveSync"
+            $eas = "https://" + "$SOutlookHostname" + "/Microsoft-Server-ActiveSync"
             write-host "ActiveSync URL:" $eas
             Get-ActiveSyncVirtualDirectory -Server $env:computername  | Set-ActiveSyncVirtualDirectory -internalurl $eas -externalurl $eas
             
             #OfflineAdressbuch
-            $oab = "https://" + "$OutlookHostname" + "/OAB"
+            $oab = "https://" + "$SOutlookHostname" + "/OAB"
             write-host "OAB URL:" $oab
             Get-OabVirtualDirectory -Server $env:computername | Set-OabVirtualDirectory -internalurl $oab -externalurl $oab
             
             #MAPIoverHTTP
-            $mapi = "https://" + "$OutlookHostname" + "/mapi"
+            $mapi = "https://" + "$SOutlookHostname" + "/mapi"
             write-host "MAPI URL:" $mapi
             Get-MapiVirtualDirectory -Server $env:computername| Set-MapiVirtualDirectory -externalurl $mapi -internalurl $mapi
             
             #Outlook Anywhere (RPCoverhTTP)
-            write-host "OA Hostname:" $OutlookHostname
-            Get-OutlookAnywhere -Server $env:computername| Set-OutlookAnywhere -externalhostname $OutlookHostname -internalhostname $OutlookHostname -ExternalClientsRequireSsl:$true -InternalClientsRequireSsl:$true -ExternalClientAuthenticationMethod 'Negotiate' -wa 0
+            write-host "OA Hostname:" $SOutlookHostname
+            Get-OutlookAnywhere -Server $env:computername| Set-OutlookAnywhere -externalhostname $SOutlookHostname -internalhostname $SOutlookHostname -ExternalClientsRequireSsl:$true -InternalClientsRequireSsl:$true -ExternalClientAuthenticationMethod 'Negotiate' -wa 0
             
             Write-Host "Setting AutodiscoverHostname to $AutodiscoverHostname ..."
             
             #Autodiscover SCP
-            $autodiscover = "https://" + "$AutodiscoverHostname" + "/Autodiscover/Autodiscover.xml"
+            $autodiscover = "https://" + "$SAutodiscoverHostname" + "/Autodiscover/Autodiscover.xml"
             write-host "Autodiscover URL:" $autodiscover
             Get-ClientAccessService $env:computername | Set-ClientAccessService -AutoDiscoverServiceInternalUri $autodiscover
-            Write-MyVerbose "Should have set hostname to $OutlookHostname and $AutodiscoverHostname thx franky"
+            Write-MyVerbose "Should have set hostname to $SOutlookHostname and $SAutodiscoverHostname thx franky"
 
-            Write-Host "Now setting Exchange Product Key to $ExchangeProductKey ..."
-            Set-ExchangeServer $env:computername -ProductKey $ExchangeProductKey
-            Write-MyVerbose "Should have set product key to $ExchangeProductKey"
+            Write-Host "Now setting Exchange Product Key to $SExchangeProductKey ..."
+            Set-ExchangeServer $env:computername -ProductKey $ESxchangeProductKey
+            Write-MyVerbose "Should have set product key to $SExchangeProductKey"
             Write-Host "Now restarting MSExchangeIS Service so product key is enabled"
             Restart-Service MSExchangeIS
 
@@ -2986,7 +3004,7 @@ process {
             Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -Verbose
 
             Write-Host "Now we will Import the Exchange Certificates. Please be patient and look for errors..."
-            Import-ExchangeCertificate -Server $env:computername -FileName $CertFile -Password (ConvertTo-SecureString -String $CertPassword -AsPlainText -Force)
+            Import-ExchangeCertificate -Server $env:computername -FileName $SCertFile -Password (ConvertTo-SecureString -String $SCertPassword -AsPlainText -Force)
 
             If( $State["InstallMailbox"] ) {
                 # Insert Mailbox Server specifics here
