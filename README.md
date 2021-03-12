@@ -11,6 +11,4 @@ https://github.com/michelderooij/Install-Exchange15
 
 Parameters in var.ps1
 
-
-
-
+PS: You need to do your db import manually after this script.
