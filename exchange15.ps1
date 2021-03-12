@@ -3055,7 +3055,7 @@ process {
             Set-Service -Name „MSExchangeImap4BE“ -StartUpType Automatic
 
             Write-Host "binding certificate to exchange services"
-            $thumb = get-exchangecertifcate |where Subject -like $SCertEXServices | select Thumbprint   
+            $thumb = get-exchangecertificate |where Subject -like $SCertEXServices | select Thumbprint   
             Enable-ExchangeCertificate -Thumbprint  $thumb.thumbprint -Services IIS,SMTP,POP,IMAP -force
 
             Write-Host "Okay now enabling defender..."
