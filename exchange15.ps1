@@ -3004,7 +3004,7 @@ process {
             Write-MyVerbose "Should have set product key to $SExchangeProductKey"
             Write-Host "Now restarting MSExchangeIS Service so product key is enabled"
             Restart-Service MSExchangeIS
-
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             Write-Host "Will now install PSWindowsUpdate Module. This might take a while..."
             Write-Host "Getting NuGet..."
             Install-PackageProvider NuGet -Force;
@@ -3014,7 +3014,7 @@ process {
             Install-Module PSWindowsUpdate -Repository PSGallery
 
             Write-Host "Will now try to install the HAFNIUM Patch kb..."
-            Get-WindowsUpdate -KBArticleID KB5000978 -install -AcceptAll -Verbose -IgnoreReboot 4> Write-Verbose
+            Get-WindowsUpdate -KBArticleID KB5000871 -install -AcceptAll -Verbose -IgnoreReboot 4> Write-Verbose
 
             Write-Host "Finally will update everything. This will take some time... Thank you for waiting :P"
             Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -Verbose
