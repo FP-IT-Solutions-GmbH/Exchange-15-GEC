@@ -9,43 +9,7 @@ Custom Version of Install-Exchange 15 Script from michelderooij
 
 https://github.com/michelderooij/Install-Exchange15
 
-New Parameters:
-
--OutlookHostname
-
-Used for Exchange URL (like outlook.example.org)
-
--AutodiscoverHostname 
-
-Used for Exchange URL (like autodiscover.example.org)
-
--ExchangeProductKey 
-
-Exchange Product Key
-
--CertFile
-
-Full Path and Name to certfile which needs to be imported to exchange (like C:\certs\certfile.pfx)
-
--CertPassword
-
-Cleartext Password for Certfile. Internally converted to securestring
-
-
-
-New Functions:
-
--Includes Hafnium patches
-
--Patches whole system with PSWindowsUpdate 
-
-
-
-ToDo:
-
--Copy DB to original path
-
--DB Mount
+Parameters in var.ps1
 
 
 
