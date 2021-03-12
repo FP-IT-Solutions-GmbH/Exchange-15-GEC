@@ -382,6 +382,9 @@
     .PARAMETER CertPassword2
     FP / ClearText Password for CertFile2
 
+    .PARAMETER Logdir
+    FP / Dir of Default Exchange Logs
+
     .EXAMPLE
     $Cred=Get-Credential
     .\Install-Exchange15.ps1 -Organization Fabrikam -InstallMailbox -MDBDBPath C:\MailboxData\MDB1\DB -MDBLogPath C:\MailboxData\MDB1\Log -MDBName MDB1 -InstallPath C:\Install -AutoPilot -Credentials $Cred -SourcePath '\\server\share\Exchange 2013\mu_exchange_server_2013_x64_dvd_1112105' -SCP https://autodiscover.fabrikam.com/autodiscover/autodiscover.xml -Verbose
@@ -559,6 +562,8 @@ param(
     [string]$CertPassword,
     [Parameter(Mandatory=$false)]
     [string]$CertPassword2,
+    [Parameter(Mandatory=$false)]
+    [string]$Logdir,
         [ValidateRange(0,6)]
         [int]$Phase
 )
@@ -2641,7 +2646,10 @@ process {
             Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword2
             $ACertFile2 = '$SCertFile2' + " = `"$CertFile2`""
             Add-Content -Path C:\Install\var.ps1 -Value $ACertFile2
+            $ALogdir = '$SLogdir' + " = `"$Logdir`""
+            Add-Content -Path C:\Install\var.ps1 -Value $ALogdir
             Write-Host "Will beginn with the real script now :)"
+            
             If( @($WS2012R2_MAJOR, $WS2016_MAJOR) -contains $MajorOSVersion) {
                 If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU2)) -or
                     ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2013SETUPEXE_CU13))) {
@@ -3022,6 +3030,10 @@ process {
             Write-Host "Now we will Import the Exchange Certificates. Please be patient and look for errors..."
             Import-ExchangeCertificate -Server $env:computername -FileName $SCertFile -Password (ConvertTo-SecureString -String $SCertPassword -AsPlainText -Force)
             Import-ExchangeCertificate -Server $env:computername -FileName $SCertFile2 -Password (ConvertTo-SecureString -String $SCertPassword2 -AsPlainText -Force)
+
+            Import-Module WebAdministration
+            Set-WebConfigurationProperty "/system.applicationHost/sites/siteDefaults" -name logfile.directory -value $SLogdir
+            IISReset
 
             If( $State["InstallMailbox"] ) {
                 # Insert Mailbox Server specifics here
