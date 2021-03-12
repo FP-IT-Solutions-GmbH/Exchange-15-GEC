@@ -385,6 +385,9 @@
     .PARAMETER Logdir
     FP / Dir of Default Exchange Logs
 
+    .PARAMETER CertExServices
+    FP / Dir of Default Exchange Logs
+
     .EXAMPLE
     $Cred=Get-Credential
     .\Install-Exchange15.ps1 -Organization Fabrikam -InstallMailbox -MDBDBPath C:\MailboxData\MDB1\DB -MDBLogPath C:\MailboxData\MDB1\Log -MDBName MDB1 -InstallPath C:\Install -AutoPilot -Credentials $Cred -SourcePath '\\server\share\Exchange 2013\mu_exchange_server_2013_x64_dvd_1112105' -SCP https://autodiscover.fabrikam.com/autodiscover/autodiscover.xml -Verbose
@@ -548,22 +551,24 @@ param(
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='NoSetup')]
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='AutoPilot')]
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='Recover')]
-    [Parameter(Mandatory=$false)]
-    [string]$AutodiscoverHostname,
-    [Parameter(Mandatory=$false)]
-    [string]$OutlookHostname,
-    [Parameter(Mandatory=$false)]
-    [string]$ExchangeProductKey,
-    [Parameter(Mandatory=$false)]
-    [string]$CertFile,
-    [Parameter(Mandatory=$false)]
-    [string]$CertFile2,
-    [Parameter(Mandatory=$false)]
-    [string]$CertPassword,
-    [Parameter(Mandatory=$false)]
-    [string]$CertPassword2,
-    [Parameter(Mandatory=$false)]
-    [string]$Logdir,
+    # [Parameter(Mandatory=$false)]
+    # [string]$AutodiscoverHostname,
+    # [Parameter(Mandatory=$false)]
+    # [string]$OutlookHostname,
+    # [Parameter(Mandatory=$false)]
+    # [string]$ExchangeProductKey,
+    # [Parameter(Mandatory=$false)]
+    # [string]$CertFile,
+    # [Parameter(Mandatory=$false)]
+    # [string]$CertFile2,
+    # [Parameter(Mandatory=$false)]
+    # [string]$CertPassword,
+    # [Parameter(Mandatory=$false)]
+    # [string]$CertPassword2,
+    # [Parameter(Mandatory=$false)]
+    # [string]$CertEXServices,
+    # [Parameter(Mandatory=$false)]
+    # [string]$Logdir,
         [ValidateRange(0,6)]
         [int]$Phase
 )
@@ -2630,26 +2635,26 @@ process {
 
       Switch ($State["InstallPhase"]) {
         1 {
-            Write-Host "Hello and welcome. Now setting variables..."
-            New-Item C:\Install\var.ps1
             Write-Host "Disabling Defender..."
             Set-MpPreference -DisableRealtimeMonitoring $true
-            $AAutodiscoverHostname = '$SAutodiscoverHostname' + " = `"$AutodiscoverHostname`""
-            Add-Content -Path C:\Install\var.ps1 -Value $AAutodiscoverHostname
-            $AOutlookHostname = '$SOutlookHostname' + " = `"$OutlookHostname`""
-            Add-Content -Path C:\Install\var.ps1 -Value $AOutlookHostname
-            $AExchangeProductKey = '$SExchangeProductKey' + " = `"$ExchangeProductKey`""
-            Add-Content -Path C:\Install\var.ps1 -Value $AExchangeProductKey
-            $ACertFile = '$SCertFile' + " = `"$CertFile`""
-            Add-Content -Path C:\Install\var.ps1 -Value $ACertFile
-            $ACertPassword = '$SCertPassword' + " = `"$CertPassword`""
-            Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword
-            $ACertPassword2 = '$SCertPassword2' + " = `"$CertPassword2`""
-            Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword2
-            $ACertFile2 = '$SCertFile2' + " = `"$CertFile2`""
-            Add-Content -Path C:\Install\var.ps1 -Value $ACertFile2
-            $ALogdir = '$SLogdir' + " = `"$Logdir`""
-            Add-Content -Path C:\Install\var.ps1 -Value $ALogdir
+            # Write-Host "Hello and welcome. Now setting variables..."
+            # New-Item C:\Install\var.ps1
+            # $AAutodiscoverHostname = '$SAutodiscoverHostname' + " = `"$AutodiscoverHostname`""
+            # Add-Content -Path C:\Install\var.ps1 -Value $AAutodiscoverHostname
+            # $AOutlookHostname = '$SOutlookHostname' + " = `"$OutlookHostname`""
+            # Add-Content -Path C:\Install\var.ps1 -Value $AOutlookHostname
+            # $AExchangeProductKey = '$SExchangeProductKey' + " = `"$ExchangeProductKey`""
+            # Add-Content -Path C:\Install\var.ps1 -Value $AExchangeProductKey
+            # $ACertFile = '$SCertFile' + " = `"$CertFile`""
+            # Add-Content -Path C:\Install\var.ps1 -Value $ACertFile
+            # $ACertPassword = '$SCertPassword' + " = `"$CertPassword`""
+            # Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword
+            # $ACertPassword2 = '$SCertPassword2' + " = `"$CertPassword2`""
+            # Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword2
+            # $ACertFile2 = '$SCertFile2' + " = `"$CertFile2`""
+            # Add-Content -Path C:\Install\var.ps1 -Value $ACertFile2
+            # $ALogdir = '$SLogdir' + " = `"$Logdir`""
+            # Add-Content -Path C:\Install\var.ps1 -Value $ALogdir
             Write-Host "Will beginn with the real script now :)"
             
             If( @($WS2012R2_MAJOR, $WS2016_MAJOR) -contains $MajorOSVersion) {
@@ -2963,7 +2968,6 @@ process {
             }
             Start-7318DrainNGenQueue
 
-
             Write-Host "If you see this variables are loaded correctly. Otherwise will load from ps1 file now... $OutlookHostname"
             #Better save then sorry. If there is error above this thank me later
             . C:\Install\var.ps1
@@ -3053,26 +3057,20 @@ process {
             Set-FrontendTransportService $DAG1 -ReceiveProtocolLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\FrontEnd\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
             Set-MailboxTransportService $DAG1 -ReceiveProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpReceive" -ReceiveProtocolLogMaxFileSize 10MB -ReceiveProtocolLogMaxDirectorySize 250MB -ReceiveProtocolLogMaxAge 30.00:00:00 -SendProtocolLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\Mailbox\ProtocolLog\SmtpSend" -SendProtocolLogMaxFileSize 10MB -SendProtocolLogMaxDirectorySize 250MB -SendProtocolLogMaxAge 30.00:00:00
             
-
-            
             Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-ListReceiveProtocolLog*,SendProtocolLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List ReceiveProtocolLog*,SendProtocolLog*
             $DAG1="EX-DAG01"
             
             Set-TransportService $DAG1 -ConnectivityLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\Hub\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
             
             Set-FrontEndTransportService $DAG1 -ConnectivityLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\FrontEnd\Connectivity" -ConnectivityLogMaxFileSize 10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
-
             
             Set-MailboxTransportService $DAG1 -ConnectivityLogPath "$Path" + "Exchange Server\V15\TransportRoles\Logs\Mailbox\Connectivity" -ConnectivityLogMaxFileSize10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
-
             
             Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List Name,ConnectivityLog*
             Anhang 1.10: Verschieben der Logverzeichnisse in der Exchange 2016 DAG für die Message Tracking Logs
             $DAG1="EX-DAG01"
-
             
             Set-TransportService $DAG1 -MessageTrackingLogPath "$Path" + "ExchangeServer\V15\TransportRoles\Logs\MessageTracking" -MessageTrackingLogMaxFileSize 10MB -MessageTrackingLogMaxDirectorySize 1GB -MessageTrackingLogMaxAge 30.00:00:00
-
             
             Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService | Format-List MessageTrackingLog*
 
@@ -3081,7 +3079,7 @@ process {
             Set-Service -Name „MSExchangeImap4BE“ -StartUpType Automatic
 
             Write-Host "binding certificate to exchange services"
-            $thumb = get-exchangecertifcate |where Subject -like "*autodiscover*" | select Thumbprint  
+            $thumb = get-exchangecertifcate |where Subject -like $SCertEXServices | select Thumbprint   
             Enable-ExchangeCertificate -Thumbprint  $thumb.thumbprint -Services IIS,SMTP,POP,IMAP -force
 
             Write-Host "Okay now enabling defender..."
@@ -3097,7 +3095,6 @@ process {
                 # Insert Edge Server specifics here
             }
 
-            
             # Insert generic customizations here
 
             #If( Get-Service MSExchangeHM -ErrorAction SilentlyContinue) {
