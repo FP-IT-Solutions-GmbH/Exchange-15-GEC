@@ -3043,7 +3043,7 @@ process {
             Set-MailboxTransportService $DAG1 -ConnectivityLogPath "D:\ExchangeServer\V15\TransportRoles\Logs\Mailbox\Connectivity" -ConnectivityLogMaxFileSize 10MB -ConnectivityLogMaxDirectorySize 1GB -ConnectivityLogMaxAge 30.00:00:00
             
             Write-Host "Front End Transport service:" -ForegroundColor yellow; Get-FrontEndTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Mailbox Transport Submission and Mailbox Transport Delivery services:" -ForegroundColor yellow; Get-MailboxTransportService |  Format-List Name,ConnectivityLog*; Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService |  Format-List Name,ConnectivityLog*
-            Anhang 1.10: Verschieben der Logverzeichnisse in der Exchange 2016 DAG für die Message Tracking Logs
+            #Anhang 1.10: Verschieben der Logverzeichnisse in der Exchange 2016 DAG für die Message Tracking Logs
             #$DAG1="EX-DAG01"
             
             Set-TransportService $DAG1 -MessageTrackingLogPath "D:\ExchangeServer\V15\TransportRoles\Logs\MessageTracking" -MessageTrackingLogMaxFileSize 10MB -MessageTrackingLogMaxDirectorySize 1GB -MessageTrackingLogMaxAge 30.00:00:00
