@@ -545,19 +545,19 @@ param(
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='NoSetup')]
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='AutoPilot')]
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='Recover')]
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$false)]
     [string]$AutodiscoverHostname,
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$false)]
     [string]$OutlookHostname,
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$false)]
     [string]$ExchangeProductKey,
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$false)]
     [string]$CertFile,
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$false)]
     [string]$CertFile2,
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$false)]
     [string]$CertPassword,
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$false)]
     [string]$CertPassword2,
         [ValidateRange(0,6)]
         [int]$Phase
