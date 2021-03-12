@@ -371,8 +371,14 @@
     .PARAMETER CertFile
     FP / Full Path and Name to Cert File for Exchange Import
 
+    .PARAMETER CertFile2
+    FP / Full Path and Name to CertFile2 for Exchange Import
+
     .PARAMETER CertPassword
     FP / ClearText Password for CertFile
+
+    .PARAMETER CertPassword2
+    FP / ClearText Password for CertFile2
 
     .EXAMPLE
     $Cred=Get-Credential
@@ -544,9 +550,13 @@ param(
     [Parameter(Mandatory=$True)]
     [string]$ExchangeProductKey,
     [Parameter(Mandatory=$True)]
-    [string]$CertFile
+    [string]$CertFile,
+    [Parameter(Mandatory=$True)]
+    [string]$CertFile2,
     [Parameter(Mandatory=$True)]
     [string]$CertPassword,
+    [Parameter(Mandatory=$True)]
+    [string]$CertPassword2,
         [ValidateRange(0,6)]
         [int]$Phase
 )
@@ -2625,6 +2635,10 @@ process {
             Add-Content -Path C:\Install\var.ps1 -Value $ACertFile
             $ACertPassword = '$SCertPassword' + " = `"$CertPassword`""
             Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword
+            $ACertPassword2 = '$SCertPassword2' + " = `"$CertPassword2`""
+            Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword2
+            $ACertFile2 = '$SCertFile2' + " = `"$CertFile2`""
+            Add-Content -Path C:\Install\var.ps1 -Value $ACertFile2
             Write-Host "Will beginn with the real script now :)"
             If( @($WS2012R2_MAJOR, $WS2016_MAJOR) -contains $MajorOSVersion) {
                 If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU2)) -or
@@ -3005,6 +3019,7 @@ process {
 
             Write-Host "Now we will Import the Exchange Certificates. Please be patient and look for errors..."
             Import-ExchangeCertificate -Server $env:computername -FileName $SCertFile -Password (ConvertTo-SecureString -String $SCertPassword -AsPlainText -Force)
+            Import-ExchangeCertificate -Server $env:computername -FileName $SCertFile2 -Password (ConvertTo-SecureString -String $SCertPassword2 -AsPlainText -Force)
 
             If( $State["InstallMailbox"] ) {
                 # Insert Mailbox Server specifics here
