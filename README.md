@@ -1,7 +1,7 @@
 # Exchange-15-GEC
 
 Disclaimer:
-This Script fucks up the Exchange-15 script and customizes it to only recover Exchange after HAFNIUM infection on new server with all requiered parameters
+This Script is based on the Exchange-15 script and customizes it to recover Exchange after HAFNIUM infection on new server with all requiered parameters
 
 If you do not want to read what I have changed in the Script and just want run and forget please use the original script and then apply your patches manually.
 
