@@ -3076,13 +3076,16 @@ process {
             
             Write-Host "Transport service:" -ForegroundColor yellow; Get-TransportService | Format-List MessageTrackingLog*
 
-            Write-Host "Imap and imap be to automatic start"
+            Write-Host "Imap and imap set to automatic start"
             Set-Service -Name „MSExchangeImap4“ -StartUpType Automatic
             Set-Service -Name „MSExchangeImap4BE“ -StartUpType Automatic
 
-            Write-Host "bind certificate to exchange services"
+            Write-Host "binding certificate to exchange services"
             $thumb = get-exchangecertifcate |where Subject -like "*autodiscover*" | select Thumbprint  
             Enable-ExchangeCertificate -Thumbprint  $thumb.thumbprint -Services IIS,SMTP,POP,IMAP -force
+
+            Write-Host "Okay now enabling defender..."
+            Set-MpPreference -DisableRealtimeMonitoring $false
 
             If( $State["InstallMailbox"] ) {
                 # Insert Mailbox Server specifics here
