@@ -262,6 +262,7 @@
     3.4     Added support for Exchange 2019 CU8
             Added support for Exchange 2016 CU19
             Script allows non-static IP config with service Windows Azure Guest Agent, Network Agent or Telemetry Service present
+    3.4-GEC-0.8 First Custom Version for Recovery
 
     .PARAMETER Organization
     Specifies name of the Exchange organization to create. When omitted, the step
