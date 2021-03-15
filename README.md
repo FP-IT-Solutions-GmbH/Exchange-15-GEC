@@ -1,7 +1,7 @@
 # Exchange-15-GEC
 
 Disclaimer:
-This Script is based on the Exchange-15 script and customizes it to recover Exchange after HAFNIUM infection on new server with all requiered parameters
+This Script is based on the Exchange-15 script and customizes it to recover Exchange after HAFNIUM infection on new server with all required parameters
 
 If you do not want to read what I have changed in the Script and just want run and forget please use the original script and then apply your patches manually.
 
@@ -11,4 +11,4 @@ https://github.com/michelderooij/Install-Exchange15
 
 Parameters in var.ps1
 
-PS: You need to do your db import manually after this script.
+PS: You need to do your db import manually after this script. Just copy into the original install path and then mount the database
