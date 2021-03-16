@@ -6,3 +6,4 @@ $SCertPassword = "XXXXX" #autodiscover cert password in cleartext
 $SCertFile2 = "H:\exchangeserverauth.pfx"
 $SCertPassword2 = "XXXXX"
 $SCertEXServices = "*.contoso.com"
+#ExcLogPath = "D:\"

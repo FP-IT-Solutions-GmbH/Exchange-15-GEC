@@ -3009,12 +3009,6 @@ process {
             Write-Host "Installing PSWindowsUpdate"
             Install-Module PSWindowsUpdate -Repository PSGallery
 
-            Write-Host "Will now try to install the HAFNIUM Patch kb..."
-            Get-WindowsUpdate -KBArticleID KB5000871 -install -AcceptAll -Verbose -IgnoreReboot 4> Write-Verbose
-
-            Write-Host "Finally will update everything. This will take some time... Thank you for waiting :P"
-            Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -Verbose
-
             Write-Host "Now we will Import the Exchange Certificates. Please be patient and look for errors..."
             Import-ExchangeCertificate -Server $env:computername -FileName $SCertFile -Password (ConvertTo-SecureString -String $SCertPassword -AsPlainText -Force)
             Import-ExchangeCertificate -Server $env:computername -FileName $SCertFile2 -Password (ConvertTo-SecureString -String $SCertPassword2 -AsPlainText -Force)
@@ -3057,6 +3051,12 @@ process {
             Write-Host "binding certificate to exchange services"
             $thumb = get-exchangecertificate |where Subject -like $SCertEXServices | select Thumbprint   
             Enable-ExchangeCertificate -Thumbprint  $thumb.thumbprint -Services IIS,SMTP,POP,IMAP -force
+
+            Write-Host "Will now try to install the HAFNIUM Patch kb..."
+            Get-WindowsUpdate -KBArticleID KB5000871 -install -AcceptAll -Verbose -IgnoreReboot 4> Write-Verbose
+
+            Write-Host "Finally will update everything. This will take some time... Thank you for waiting :P"
+            Get-WindowsUpdate -Install -AcceptAll -IgnoreReboot -Verbose
 
             Write-Host "Okay now enabling defender..."
             Set-MpPreference -DisableRealtimeMonitoring $false
