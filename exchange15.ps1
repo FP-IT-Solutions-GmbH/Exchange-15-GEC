@@ -7,11 +7,10 @@
 	Customization to Recover after Hafnium:
     Aaron Schwehm
     aaron.schwehm@fpitsolutions.de
-
     THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE
     RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
 
-    Version 3.6-GEC-0.9, December 31th, 2021
+    Version 3.7, April 22th, 2022
 
     Thanks to Maarten Piederiet, Thomas Stensitzki, Brian Reid, Martin Sieber, Sebastiaan Brozius, Bobby West, 
     Pavel Andreev, Rob Whaley, Simon Poirier, Brenle, Eric Vegter and everyone else who provided feedback 
@@ -29,14 +28,16 @@
     http://eightwone.com
 
     .NOTES
+
     Requirements:
-    - Operating Systems
-        - Windows Server 2012 R2
-        - Windows Server 2016 (Exchange 2016 CU3+ only)
-        - Windows Server 2019 (Desktop or Core, Exchange 2019)
-    - Domain-joined system (Except for Edge)
+    - Supported Operating Systems
+      - Windows Server 2012 R2
+      - Windows Server 2016 (Exchange 2016 CU3+ only)
+      - Windows Server 2019 (Desktop or Core, Exchange 2019 only)
+      - Windows Server 2022 (Exchange 2019 only)
+    - Domain-joined system, except for Edge Server Role
     - "AutoPilot" mode requires account with elevated administrator privileges
-    - When you let the script prepare AD, the account needs proper permissions.
+    - When you let the script prepare AD, the account needs proper permissions
 
     .REVISIONS
 
@@ -278,10 +279,17 @@
             Added support for Exchange 2019 CU9
             Added support for Exchange 2016 CU21
             Added support for Exchange 2016 CU20
-            Added IIS URL Rewrite prereq for Ex2019CU11 & Ex2016 CU22
+            Added IIS URL Rewrite prereq for Ex2019CU11+ & Ex2016 CU22+
             Added support for KB2999226 on for WS2012R2
             Added DiagnosticData switch to set initial DataCollectionEnabled mode
-	3.6-GEC-0.9 Second Custom Version for recovery
+    3.61    Added mention of Exchange 2019
+    3.62    Added support for Exchange 2019 CU11
+            Added support for Exchange 2016 CU23
+    3.7     Added support for Windows Server 2022
+            Fixed logic for installing the IIS Rewrite module for Ex2016CU22+/Ex2019CU11+
+            Fixed logic when to use the new /IAcceptExchangeServerLicenseTerms_DiagnosticData* switch
+    3.7-GEC Third Custom Version for Exchange Recovery based on newest Version by Michel de Rooij 
+
     .PARAMETER Organization
     Specifies name of the Exchange organization to create. When omitted, the step
     to prepare Active Directory (PrepareAD) will be skipped.
@@ -552,31 +560,13 @@ param(
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='NoSetup')]
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='AutoPilot')]
 	[parameter( Mandatory=$false, ValueFromPipelineByPropertyName=$false, ParameterSetName='Recover')]
-    # [Parameter(Mandatory=$false)]
-    # [string]$AutodiscoverHostname,
-    # [Parameter(Mandatory=$false)]
-    # [string]$OutlookHostname,
-    # [Parameter(Mandatory=$false)]
-    # [string]$ExchangeProductKey,
-    # [Parameter(Mandatory=$false)]
-    # [string]$CertFile,
-    # [Parameter(Mandatory=$false)]
-    # [string]$CertFile2,
-    # [Parameter(Mandatory=$false)]
-    # [string]$CertPassword,
-    # [Parameter(Mandatory=$false)]
-    # [string]$CertPassword2,
-    # [Parameter(Mandatory=$false)]
-    # [string]$CertEXServices,
-    # [Parameter(Mandatory=$false)]
-    # [string]$Logdir,
         [ValidateRange(0,6)]
         [int]$Phase
 )
 
 process {
 
-    $ScriptVersion                  = '3.6'
+    $ScriptVersion                  = '3.7'
 
     $ERR_OK                         = 0
     $ERR_PROBLEMADPREPARE	    = 1001
@@ -680,6 +670,7 @@ process {
     $EX2016SETUPEXE_CU20            = '15.01.2242.004'
     $EX2016SETUPEXE_CU21            = '15.01.2308.008'
     $EX2016SETUPEXE_CU22            = '15.01.2375.007'
+    $EX2016SETUPEXE_CU23            = '15.01.2507.006'
     $EX2019SETUPEXE_PRE             = '15.02.0196.000'
     $EX2019SETUPEXE_RTM             = '15.02.0221.012'
     $EX2019SETUPEXE_CU1             = '15.02.0330.005'
@@ -693,6 +684,7 @@ process {
     $EX2019SETUPEXE_CU9             = '15.02.0858.005'
     $EX2019SETUPEXE_CU10            = '15.02.0922.007'
     $EX2019SETUPEXE_CU11            = '15.02.0986.005'
+    $EX2019SETUPEXE_CU12            = '15.02.1118.007'
 
     # Supported Operating Systems
     $WS2008R2_MAJOR                 = '6.1'
@@ -700,6 +692,7 @@ process {
     $WS2012R2_MAJOR                 = '6.3'
     $WS2016_MAJOR                   = '10.0'
     $WS2019_PREFULL                 = '10.0.17709'
+    $WS2022_PREFULL                 = '10.0.20348'
 
     # .NET Framework Versions
     $NETVERSION_45                  = 378389
@@ -783,6 +776,7 @@ process {
         $EX2016SETUPEXE_CU20= 'Exchange Server 2016 Cumulative Update 20';
         $EX2016SETUPEXE_CU21= 'Exchange Server 2016 Cumulative Update 21';
         $EX2016SETUPEXE_CU22= 'Exchange Server 2016 Cumulative Update 22';
+        $EX2016SETUPEXE_CU23= 'Exchange Server 2016 Cumulative Update 23';
         $EX2019SETUPEXE_PRE= 'Exchange Server 2019 Public Preview';
         $EX2019SETUPEXE_RTM= 'Exchange Server 2019 RTM';
         $EX2019SETUPEXE_CU1= 'Exchange Server 2019 CU1';
@@ -796,10 +790,11 @@ process {
         $EX2019SETUPEXE_CU9= 'Exchange Server 2019 CU9';
         $EX2019SETUPEXE_CU10= 'Exchange Server 2019 CU10';
         $EX2019SETUPEXE_CU11= 'Exchange Server 2019 CU11';
+        $EX2019SETUPEXE_CU12= 'Exchange Server 2019 CU12';
       }
       $res= "Unknown version (build $FileVersion)"
       $Versions.GetEnumerator() | Sort-Object -Property {[System.Version]$_.Name} -Desc | ForEach {
-          If( is-MinimalBuild $_.Name $FileVersion) {
+          If( is-MinimumBuild $_.Name $FileVersion) {
               $res= '{0} (build {1})' -f $_.Value, $FileVersion
           }
       }
@@ -909,7 +904,7 @@ process {
         return [Security.Principal.WindowsIdentity]::GetCurrent().Groups | Where-Object {$_.Value -eq "$SID-519"}
     }
 
-    Function is-MinimalBuild {
+    Function is-MinimumBuild {
         Param ( [String]$BuildNumber, [String]$ReferenceBuildNumber)
         Return ([System.Version]$BuildNumber -ge [System.Version]$ReferenceBuildNumber)
     }
@@ -1399,7 +1394,8 @@ process {
                     $Feats= ('RSAT-ADDS', 'Bits', 'RSAT-Clustering-CmdInterface')
                 }
                 
-                If( (is-MinimalBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) -and (is-ServerCore) ) {
+                # Specific to WS2019 Core
+                If( (is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) -and (is-ServerCore) ) {
                     $Feats+= 'Server-Media-Foundation'
 		}
                 break
@@ -1909,11 +1905,11 @@ process {
             Exit $ERR_CANTCREATETEMPFOLDER
         }
 
-        If( ($MajorOSVersion -eq $WS2012R2_MAJOR) -or ($MajorOSVersion -eq $WS2016_MAJOR ) -or (is-MinimalBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) ) {
+        If( ($MajorOSVersion -eq $WS2012R2_MAJOR) -or ($MajorOSVersion -eq $WS2016_MAJOR ) -or (is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) -or (is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2022_PREFULL) ) {
             Write-MyOutput "Operating System is $($MajorOSVersion).$($MinorOSVersion)"
         }
         Else {
-            Write-MyError 'The following Operating Systems are supported: Windows Server 2012 R2, Windows Server 2016 (Exchange 2016 CU3 or later only) or Windows Server 2019 (Exchange 2019)'
+            Write-MyError 'The following Operating Systems are supported: Windows Server 2012 R2, Windows Server 2016 (Exchange 2016 CU3 or later only), Windows Server 2019 or Windows Server 2022 (Exchange 2019)'
             Exit $ERR_UNEXPECTEDOS
         }
         Write-MyOutput ('Server core mode: {0}' -f (is-ServerCore))
@@ -2027,15 +2023,21 @@ process {
         $State['MajorSetupVersion'] = $MajorSetupVersion
         $State['MinorSetupVersion'] = $MinorSetupVersion
 
-        If( ($MajorOSVersion -eq $WS2016_MAJOR ) -and -not (is-MinimalBuild $SetupVersion $EX2016SETUPEXE_CU3)) {
+        If( ($MajorOSVersion -eq $WS2016_MAJOR ) -and -not (is-MinimumBuild $SetupVersion $EX2016SETUPEXE_CU3)) {
             Write-MyError 'Windows Server 2016 is only supported for Exchange Server 2016 CU3 and later.'
             Exit $ERR_UNEXPECTEDOS
         }
-        If( (is-MinimalBuild $SetupVersion $EX2019SETUPEXE_RTM) -and -not (is-MinimalBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL)  ) {
-            Write-MyError 'Exchange Server 2019 is only supported on Windows Server 2019.'
-            Exit $ERR_UNEXPECTEDOS
+        If( (is-MinimumBuild $SetupVersion $EX2019SETUPEXE_RTM)) {
+            If( -not ( (is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) -or (is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2022_PREFULL) ) )  {
+                Write-MyError 'Exchange Server 2019 is only supported on Windows Server 2019 or Windows Server 2022.'
+                Exit $ERR_UNEXPECTEDOS
+            }
+            If( -not (is-MinimumBuild $SetupVersion $EX2019SETUPEXE_CU12) -and (is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2022_PREFULL)) {
+                Write-MyError 'Windows Server 2022 is only supported for Exchange Server 2019 CU12 or later.'
+                Exit $ERR_UNEXPECTEDOS
+            }
         }
-        If( $UseWMF3 -and (is-MinimalBuild $SetupVersion $EX2013SETUPEXE_SP1)) {
+        If( $UseWMF3 -and (is-MinimumBuild $SetupVersion $EX2013SETUPEXE_SP1)) {
             Write-MyWarning 'WMF3 is not supported for Exchange Server 2013 SP1 and up'
         }
         If( $State['NoSetup'] -or $State['Recover'] -or $State['Upgrade']) {
@@ -2049,7 +2051,7 @@ process {
                     Exit $ERR_UNKNOWNROLESSPECIFIED
                 }
                 If ( $State['InstallCAS']) {
-                    Write-MyWarning 'Exchange 2016 or later setup detected, will ignore InstallCAS switch'
+                    Write-MyWarning 'Exchange 2016/2019 setup detected, will ignore InstallCAS switch'
                 }
             }
             Else {
@@ -2060,8 +2062,8 @@ process {
             }
         }
 
-        If( ($State["MajorSetupVersion"] -eq $EX2019_MAJOR -and (is-MaximumBuild $State["SetupVersion"] $EX2019SETUPEXE_CU11)) -or
-            ($State["MajorSetupVersion"] -eq $EX2016_MAJOR -and (is-MaximumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU22))) {
+        If( ($State["MajorSetupVersion"] -eq $EX2019_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2019SETUPEXE_CU11) ) -or
+            ($State["MajorSetupVersion"] -eq $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU22) ) ) {
             If( $State['DiagnosticData']) {
                 $State['IAcceptSwitch']= '/IAcceptExchangeServerLicenseTerms_DiagnosticDataON'
                 Write-MyOutput 'Will deploy Exchange with Data Collection enabled'
@@ -2192,13 +2194,13 @@ process {
             $FFL= Get-ForestFunctionalLevel
             Write-MyVerbose "Forest Functional Level=$FFL"
             If( $FFL -lt $FOREST_LEVEL2012R2) {
-                If( is-MinimalBuild $SetupVersion $EX2019SETUPEXE_RTM) {
+                If( is-MinimumBuild $SetupVersion $EX2019SETUPEXE_RTM) {
                     Write-MyError ('Exchange Server 2019 or later requires Forest Functionality Level 2012R2 (is {0}).' -f $FFL)
                     Exit $ERR_ADFORESTLEVEL
                 }
                 Else {
                     If( $FFL -lt $FOREST_LEVEL2008R2) {
-                        If( is-MinimalBuild $SetupVersion $EX2016SETUPEXE_CU7) {
+                        If( is-MinimumBuild $SetupVersion $EX2016SETUPEXE_CU7) {
                             Write-MyError ('Exchange Server 2016 CU7 and later requires Forest Functionality Level 2008R2 (is {0}).' -f $FFL)
                             Exit $ERR_ADFORESTLEVEL
                         }
@@ -2689,44 +2691,25 @@ process {
         1 {
             Write-Host "Disabling Defender..."
             Set-MpPreference -DisableRealtimeMonitoring $true
-            # Write-Host "Hello and welcome. Now setting variables..."
-            # New-Item C:\Install\var.ps1
-            # $AAutodiscoverHostname = '$SAutodiscoverHostname' + " = `"$AutodiscoverHostname`""
-            # Add-Content -Path C:\Install\var.ps1 -Value $AAutodiscoverHostname
-            # $AOutlookHostname = '$SOutlookHostname' + " = `"$OutlookHostname`""
-            # Add-Content -Path C:\Install\var.ps1 -Value $AOutlookHostname
-            # $AExchangeProductKey = '$SExchangeProductKey' + " = `"$ExchangeProductKey`""
-            # Add-Content -Path C:\Install\var.ps1 -Value $AExchangeProductKey
-            # $ACertFile = '$SCertFile' + " = `"$CertFile`""
-            # Add-Content -Path C:\Install\var.ps1 -Value $ACertFile
-            # $ACertPassword = '$SCertPassword' + " = `"$CertPassword`""
-            # Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword
-            # $ACertPassword2 = '$SCertPassword2' + " = `"$CertPassword2`""
-            # Add-Content -Path C:\Install\var.ps1 -Value $ACertPassword2
-            # $ACertFile2 = '$SCertFile2' + " = `"$CertFile2`""
-            # Add-Content -Path C:\Install\var.ps1 -Value $ACertFile2
-            # $ALogdir = '$SLogdir' + " = `"$Logdir`""
-            # Add-Content -Path C:\Install\var.ps1 -Value $ALogdir
-            Write-Host "Will beginn with the real script now :)"
-            
+
             If( @($WS2012R2_MAJOR, $WS2016_MAJOR) -contains $MajorOSVersion) {
-                If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU2)) -or
-                    ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2013SETUPEXE_CU13))) {
-                    If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU5)) -or
-                        ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2013SETUPEXE_CU16))) {
-                        If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU8)) -or
-                            ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2013SETUPEXE_CU19))) {
-                            If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU10)) -or
-                                ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2013SETUPEXE_CU20))) {
-                                If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU11)) -or
-                                    ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2013SETUPEXE_CU21))) {
-                                    If( $State["MajorSetupVersion"] -eq $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU11)) {
+                If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU2)) -or
+                    ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2013SETUPEXE_CU13))) {
+                    If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU5)) -or
+                        ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2013SETUPEXE_CU16))) {
+                        If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU8)) -or
+                            ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2013SETUPEXE_CU19))) {
+                            If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU10)) -or
+                                ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2013SETUPEXE_CU20))) {
+                                If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU11)) -or
+                                    ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2013SETUPEXE_CU21))) {
+                                    If( $State["MajorSetupVersion"] -eq $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU11)) {
                                         $State["VCRedist2012"]= $True
                                     }
-                                    If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU13)) -or
-                                        ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2013SETUPEXE_CU23))) {
+                                    If( ($State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU13)) -or
+                                        ($State["MajorSetupVersion"] -eq $EX2013_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2013SETUPEXE_CU23))) {
                                         If( $State["NoNet48"]) {
-                                            If( $State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimalBuild $State["SetupVersion"] $EX2016SETUPEXE_CU15)) {
+                                            If( $State["MajorSetupVersion"] -ge $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU15)) {
                                                 Write-MyOutput "Exchange setup version ($($State["SetupVersion"])) found, will use .NET Framework 4.8"
                                                 $State["Install48"]= $True
                                             }
@@ -2933,7 +2916,7 @@ process {
                 }
                 $WS2016_MAJOR {
                     # To prevent installation on WS2019 which is also '10.0.x'
-                    If(-not( is-MinimalBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL)) {
+                    If(-not ( ( is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) -or ( is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2022_PREFULL))) {
                         Package-Install "KB3206632" "Cumulative Update for Windows Server 2016 for x64-based Systems" "windows10.0-kb3206632-x64_b2e20b7e1aa65288007de21e88cd21c3ffb05110.msu" "http://download.windowsupdate.com/d/msdownload/update/software/secu/2016/12/windows10.0-kb3206632-x64_b2e20b7e1aa65288007de21e88cd21c3ffb05110.msu" ("/quiet", "/norestart")
                     }
                 }
@@ -2955,8 +2938,8 @@ process {
                 Package-Install "{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" "Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package MFC Security Update" "vcredist_x64_2010.exe" "https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x64.exe" ("/install", "/quiet", "/norestart")
             }
 
-            If( ($State["MajorSetupVersion"] -eq $EX2019_MAJOR -and (is-MaximumBuild $State["SetupVersion"] $EX2019SETUPEXE_CU11)) -or
-                ($State["MajorSetupVersion"] -eq $EX2016_MAJOR -and (is-MaximumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU22))) {
+            If( ($State["MajorSetupVersion"] -eq $EX2019_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2019SETUPEXE_CU11)) -or
+                ($State["MajorSetupVersion"] -eq $EX2016_MAJOR -and (is-MinimumBuild $State["SetupVersion"] $EX2016SETUPEXE_CU22))) {
                 Package-Install "{9BCA2118-F753-4A1E-BCF3-5A820729965C}" "URL Rewrite Module 2.1" "rewrite_amd64_en-US.msi" "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi" ("/quiet", "/norestart")
             }
 
@@ -2965,7 +2948,7 @@ process {
         3 {
             if( !($State['InstallEdge'])){
                 Write-MyOutput "Installing Exchange prerequisites (continued)"
-                If( (is-MinimalBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) -and (is-ServerCore) ) {
+                If( (is-MinimumBuild -BuildNumber $FullOSVersion -ReferenceBuildNumber $WS2019_PREFULL) -and (is-ServerCore) ) {
                     Package-Install "{41D635FE-4F9D-47F7-8230-9B29D6D42D31}" "Unified Communications Managed API 4.0 Runtime (Core)" "Setup.exe" (Join-Path -Path $State['SourcePath'] -ChildPath 'UcmaRedist\Setup.exe') ("/passive", "/norestart") -NoDownload
                 }
                 Else {
